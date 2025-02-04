@@ -1,16 +1,40 @@
 plugins {
     id("java")
+    id("jacoco")
 }
 
-repositories {
-    mavenCentral()
-}
+val jacocoPluginVersion: String by project
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+allprojects {
+    repositories {
+        mavenCentral()
+    }
 }
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "jacoco")
 
-tasks.test {
-    useJUnitPlatform()
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    jacoco {
+        toolVersion = jacocoPluginVersion
+    }
+
+    tasks {
+        test {
+            useJUnitPlatform()
+            finalizedBy("jacocoTestReport")
+        }
+        jacocoTestReport {
+            dependsOn(test)
+            reports {
+                xml.required.set(true)
+                html.required.set(true)
+            }
+        }
+    }
 }
